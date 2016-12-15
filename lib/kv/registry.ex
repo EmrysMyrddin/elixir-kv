@@ -8,9 +8,8 @@ defmodule KV.Registry do
 	@doc """
 	Sarts the registry
 	"""
-
-	def start_link do
-		GenServer.start_link(__MODULE__, :ok, [])
+	def start_link(name) do
+		GenServer.start_link(__MODULE__, :ok, name: name)
 	end
 
 	@doc """
@@ -51,13 +50,13 @@ defmodule KV.Registry do
 	end
 
 	def handle_call(request, from, state), do: super(request, from, state)
-	
+
 
 	def handle_cast({:create, name}, {names, refs} = state) do
 		if Map.has_key?(names, name) do
 			{:noreply, state}
 		else
-			{:ok, bucket} = KV.Bucket.start_link
+			{:ok, bucket} = KV.Bucket.Supervisor.start_bucket
 			ref = Process.monitor bucket
 			refs = Map.put refs, ref, name
 			names = Map.put names, name, bucket
